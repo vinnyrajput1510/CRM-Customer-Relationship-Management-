@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CRM System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px auto;
+      max-width: 800px;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    form {
+      margin-bottom: 20px;
+    }
+    input[type="text"],
+    input[type="email"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    input[type="submit"] {
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    a {
+      color: red;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>CRM System</h1>
+
+  <!-- Add Customer Form -->
+  <form id="customerForm">
+    <input type="text" id="name" placeholder="Customer Name" required />
+    <input type="email" id="email" placeholder="Customer Email" required />
+    <input type="submit" value="Add Customer" />
+  </form>
+
+  <!-- Customer Table -->
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="customerList">
+      <!-- Dynamic customer rows go here -->
+    </tbody>
+  </table>
+
+  <script>
+    // Fetch and display customers on page load
+    async function loadCustomers() {
+      const response = await fetch('/api/customers');
+      const customers = await response.json();
+      const customerList = document.getElementById('customerList');
+      customerList.innerHTML = '';
+      customers.forEach(c => {
+        const row = `
+          <tr>
+            <td>${c.name}</td>
+            <td>${c.email}</td>
+            <td><a onclick="deleteCustomer(${c.id})">Delete</a></td>
+          </tr>`;
+        customerList.innerHTML += row;
+      });
+    }
+
+    // Add customer
+    document.getElementById('customerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      await fetch('/api/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email })
+      });
+      document.getElementById('customerForm').reset();
+      loadCustomers();
+    });
+
+    // Delete customer
+    async function deleteCustomer(id) {
+      await fetch(`/api/delete/${id}`, { method: 'DELETE' });
+      loadCustomers();
+    }
+
+    // Load data initially
+    loadCustomers();
+  </script>
+</body>
+</html>
